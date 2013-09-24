@@ -48,7 +48,21 @@
         // the user to return false from within the before filter
         // to prevent the original route callback and after
         // filter from running.
-        var callbackArgs = [ route, _.toArray(arguments) ];
+
+        // Determine the keys in route
+        var regex = /:([a-zA-Z])*/g;
+        var match, keys = [];
+        while(match = regex.exec(route)) {
+          keys.push(match[0].substr(1));
+        }
+
+        // Build a hash of the key/value argument pairs
+        var arguments_as_hash = {};
+        for (var i = 0; i < arguments.length; i++) {
+          arguments_as_hash[keys[i]] = arguments[i];
+        }
+
+        var callbackArgs = [ route, arguments_as_hash ];
         var beforeCallback;
 
         if ( _.isFunction(this.before) ) {
@@ -77,8 +91,9 @@
         // If the callback exists, then call it. This means that the before
         // and after filters will be called whether or not an actual
         // callback function is supplied to handle a given route.
+
         if( callback ) {
-          callback.apply( this, arguments );
+          callback.apply( this, arguments_as_hash );
         }
 
         var afterCallback;
