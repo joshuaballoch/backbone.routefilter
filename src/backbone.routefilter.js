@@ -84,7 +84,7 @@
 
         // If the before callback fails during its execusion (by returning)
         // false, then do not proceed with the route triggering.
-        if ( beforeCallback.apply(this, callbackArgs) === false ) {
+        if ( beforeCallback.call(this, callbackArgs) === false ) {
           return;
         }
 
@@ -93,7 +93,7 @@
         // callback function is supplied to handle a given route.
 
         if( callback ) {
-          callback.apply( this, arguments_as_hash );
+          callback.call( this, arguments_as_hash );
         }
 
         var afterCallback;
@@ -117,7 +117,7 @@
         }
 
         // Call the after filter.
-        afterCallback.apply( this, callbackArgs );
+        afterCallback.call( this, callbackArgs );
 
       }, this);
 
