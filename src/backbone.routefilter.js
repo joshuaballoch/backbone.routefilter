@@ -62,7 +62,7 @@
           arguments_as_hash[keys[i]] = arguments[i];
         }
 
-        var callbackArgs = [ route, arguments_as_hash ];
+        var callbackArgs = {route: route, args: arguments_as_hash};
         var beforeCallback;
 
         if ( _.isFunction(this.before) ) {
@@ -84,7 +84,7 @@
 
         // If the before callback fails during its execusion (by returning)
         // false, then do not proceed with the route triggering.
-        if ( beforeCallback.apply(this, callbackArgs) === false ) {
+        if ( beforeCallback.call(this, callbackArgs.route, callbackArgs.args) === false ) {
           return;
         }
 
@@ -93,7 +93,7 @@
         // callback function is supplied to handle a given route.
 
         if( callback ) {
-          callback.apply( this, arguments_as_hash );
+          callback.call(this, callbackArgs.route, callbackArgs.args);
         }
 
         var afterCallback;
@@ -117,7 +117,7 @@
         }
 
         // Call the after filter.
-        afterCallback.apply( this, callbackArgs );
+        afterCallback.call(this, callbackArgs.route, callbackArgs.args);
 
       }, this);
 
