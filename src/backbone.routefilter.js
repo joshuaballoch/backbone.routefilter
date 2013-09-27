@@ -84,7 +84,33 @@
 
         // If the before callback fails during its execusion (by returning)
         // false, then do not proceed with the route triggering.
-        if ( beforeCallback.call(this, callbackArgs.route, callbackArgs.args) === false ) {
+          // Store this into variable to avoid confusion
+          var that = this;
+
+          // Determine the returned value from the before callback
+          var beforeReturnVal = beforeCallback.call(this, callbackArgs.route, callbackArgs.args);
+
+          // If the beforeReturnVal is a deferred object, wait to determine value; Otherwise, proceed;
+          if ( beforeReturnVal && beforeReturnVal.promise ) {
+            // Then it is a deferred object. Wait for return value
+            beforeReturnVal.done(function(val) {
+              // Proceed with the subsequent callbacks
+              proceedWithCallbacks(that, val, callbackArgs);
+            });
+          } else {
+            // The before callback either didn't exist, or isn't a deferred object.
+            // Proceed with the subsequent callbacks
+            proceedWithCallbacks(that, beforeReturnVal, callbackArgs);
+          }
+
+      }, this);
+
+      var proceedWithCallbacks = function (that, beforeReturnVal,  callbackArgs) {
+
+        // If the before callback failed during its execusion (by returning)
+        // false, then do not proceed with the route triggering.
+
+        if ( beforeReturnVal === false ) {
           return;
         }
 
@@ -93,21 +119,21 @@
         // callback function is supplied to handle a given route.
 
         if( callback ) {
-          callback.call(this, callbackArgs.route, callbackArgs.args);
+          callback.call(that, callbackArgs.route, callbackArgs.args);
         }
 
         var afterCallback;
-        if ( _.isFunction(this.after) ) {
+        if ( _.isFunction(that.after) ) {
 
           // If the after filter is a single funciton, then call it with
           // the proper arguments.
-          afterCallback = this.after;
+          afterCallback = that.after;
 
-        } else if ( typeof this.after[route] !== "undefined" ) {
+        } else if ( typeof that.after[route] !== "undefined" ) {
 
           // otherwise if we have a hash of routes, call the appropriate
           // callback based on the route name.
-          afterCallback = this.after[route];
+          afterCallback = that.after[route];
 
         } else {
 
@@ -117,9 +143,9 @@
         }
 
         // Call the after filter.
-        afterCallback.call(this, callbackArgs.route, callbackArgs.args);
+        afterCallback.call(that, callbackArgs.route, callbackArgs.args);
 
-      }, this);
+      };
 
       // Call our original route, replacing the callback that was originally
       // passed in when Backbone.Router.route was invoked with our wrapped
